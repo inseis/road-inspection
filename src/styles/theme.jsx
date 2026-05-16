@@ -38,7 +38,7 @@ const S = {
     position: "sticky",
     top: 0,
     zIndex: 50,
-    height: 58,
+    height: 80,
     background: "rgba(10,14,20,0.88)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",

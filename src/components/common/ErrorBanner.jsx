@@ -1,4 +1,5 @@
 import { C } from "../../styles/theme";
+import { Icon } from "./Icons";
 
 /* ─── Error Banner ───────────────────────────────────────────── */
 function ErrorBanner({ message, onClose }) {

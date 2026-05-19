@@ -15,7 +15,7 @@ function ReportPage({ report, result, onReset }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
 
-  const { report_title, created_at } = report;
+  const { report_title, created_at, report_id } = report;
   const dateStr = new Date(created_at).toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
@@ -24,25 +24,64 @@ function ReportPage({ report, result, onReset }) {
     minute: "2-digit",
   });
 
-  const handleTxt = () => {
-    const blob = new Blob(
-      [`${report_title}\n생성일시: ${dateStr}\n\n${editText}`],
-      { type: "text/plain;charset=utf-8" },
-    );
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleTxt = async () => {
+    try {
+      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
+      // GET /api/reports/{report_id}/download?format=txt
+      // if (report_id && report_id !== "rep_mock") {
+      //   const res = await fetch(`/api/reports/${report_id}/download?format=txt`);
+      //   if (!res.ok) {
+      //     const err = await res.json();
+      //     throw new Error(err.error?.message || "TXT 다운로드에 실패했습니다.");
+      //   }
+      //   const blob = await res.blob();
+      //   const url = URL.createObjectURL(blob);
+      //   const a = document.createElement("a");
+      //   a.href = url;
+      //   a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
+      //   a.click();
+      //   URL.revokeObjectURL(url);
+      //   return;
+      // }
+      // ─────────────────────────────────────────────────────────
+
+      // Mock: 클라이언트에서 직접 생성
+      const blob = new Blob(
+        [`${report_title}\n생성일시: ${dateStr}\n\n${editText}`],
+        { type: "text/plain;charset=utf-8" },
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e.message);
+    }
   };
+
   const handlePdf = async () => {
     try {
       setPdfL(true);
       await new Promise((r) => setTimeout(r, 800));
-      // ── 실제 API 연동 시 교체 ──────────────────────────────
-      // const res = await fetch("/api/report/pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...})});
-      // ───────────────────────────────────────────────────────
+
+      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
+      // GET /api/reports/{report_id}/download?format=pdf
+      // const res = await fetch(`/api/reports/${report_id}/download?format=pdf`);
+      // if (!res.ok) {
+      //   const err = await res.json();
+      //   throw new Error(err.error?.message || "PDF 다운로드에 실패했습니다.");
+      // }
+      // const blob = await res.blob();
+      // const url = URL.createObjectURL(blob);
+      // const a = document.createElement("a");
+      // a.href = url;
+      // a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.pdf`;
+      // a.click();
+      // URL.revokeObjectURL(url);
+      // ─────────────────────────────────────────────────────────
+
       throw new Error("PDF 다운로드는 백엔드 API 연동 후 활성화됩니다.");
     } catch (e) {
       setError(e.message);
@@ -50,6 +89,7 @@ function ReportPage({ report, result, onReset }) {
       setPdfL(false);
     }
   };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(editText).then(() => {
       setCopied(true);
@@ -265,21 +305,13 @@ function ReportPage({ report, result, onReset }) {
                 <>
                   <button
                     onClick={() => setEdit(false)}
-                    style={{
-                      ...S.btn("ghost"),
-                      fontSize: 11,
-                      padding: "5px 12px",
-                    }}
+                    style={{ ...S.btn("ghost"), fontSize: 11, padding: "5px 12px" }}
                   >
                     취소
                   </button>
                   <button
                     onClick={handleSave}
-                    style={{
-                      ...S.btn("primary"),
-                      fontSize: 11,
-                      padding: "5px 14px",
-                    }}
+                    style={{ ...S.btn("primary"), fontSize: 11, padding: "5px 14px" }}
                   >
                     <Icon.check width={12} height={12} />
                     {saved ? "저장됨" : "저장"}
@@ -289,24 +321,14 @@ function ReportPage({ report, result, onReset }) {
                 <>
                   <button
                     onClick={handleCopy}
-                    style={{
-                      ...S.btn("secondary"),
-                      fontSize: 11,
-                      padding: "5px 12px",
-                      gap: 5,
-                    }}
+                    style={{ ...S.btn("secondary"), fontSize: 11, padding: "5px 12px", gap: 5 }}
                   >
                     <Icon.copy width={12} height={12} />
                     {copied ? "복사됨" : "복사"}
                   </button>
                   <button
                     onClick={() => setEdit(true)}
-                    style={{
-                      ...S.btn("secondary"),
-                      fontSize: 11,
-                      padding: "5px 12px",
-                      gap: 5,
-                    }}
+                    style={{ ...S.btn("secondary"), fontSize: 11, padding: "5px 12px", gap: 5 }}
                   >
                     <Icon.edit width={12} height={12} />
                     편집
@@ -337,22 +359,12 @@ function ReportPage({ report, result, onReset }) {
                 }}
               />
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: 5,
-                }}
+                style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}
               >
                 <span style={{ fontSize: 11, color: C.txtMut }}>
                   리포트 내용을 직접 수정할 수 있습니다.
                 </span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: C.txtMut,
-                    fontFamily: "'JetBrains Mono',monospace",
-                  }}
-                >
+                <span style={{ fontSize: 11, color: C.txtMut, fontFamily: "'JetBrains Mono',monospace" }}>
                   {editText.length}자
                 </span>
               </div>
@@ -378,9 +390,7 @@ function ReportPage({ report, result, onReset }) {
         {/* Table */}
         <div style={{ marginBottom: 20 }}>
           <div style={S.secLabel}>손상 클래스별 상세</div>
-          <table
-            style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
-          >
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ background: C.bgEl }}>
                 {["손상 유형", "면적 비율", "심각도", "조치 권고"].map((h) => (
@@ -406,22 +416,10 @@ function ReportPage({ report, result, onReset }) {
                 .filter((c) => c.class_name !== "normal")
                 .map((cls, i) => (
                   <tr key={i} style={{ borderBottom: `1px solid ${C.bdr}` }}>
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        fontWeight: 600,
-                        color: C.txtPri,
-                      }}
-                    >
+                    <td style={{ padding: "12px 14px", fontWeight: 600, color: C.txtPri }}>
                       {cls.label || cls.class_name}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        color: C.txtSec,
-                        fontFamily: "'JetBrains Mono',monospace",
-                      }}
-                    >
+                    <td style={{ padding: "12px 14px", color: C.txtSec, fontFamily: "'JetBrains Mono',monospace" }}>
                       {cls.area_ratio}%
                     </td>
                     <td style={{ padding: "12px 14px" }}>
@@ -474,11 +472,7 @@ function ReportPage({ report, result, onReset }) {
       </div>
 
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
         className="no-print"
       >
         <button

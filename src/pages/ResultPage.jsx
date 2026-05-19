@@ -32,7 +32,7 @@ function ResultPage({ result, onReport, onReset }) {
     return () => clearTimeout(t);
   }, []);
 
-  const { original_image_url, result_image_url, class_stats, summary, memo } =
+  const { original_image_url, result_image_url, result_images, class_stats, summary, memo, analysis_id, location } =
     result;
   const damaged = class_stats.filter((c) => c.class_name !== "normal");
   const maxR = Math.max(...damaged.map((c) => c.area_ratio));
@@ -68,12 +68,41 @@ function ResultPage({ result, onReport, onReset }) {
     try {
       setRepL(true);
       await new Promise((r) => setTimeout(r, 1200));
-      // ── 실제 API 연동 시 교체 ──────────────────────────────
-      // const res = await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({class_stats,summary,user_memo:memo})});
-      // if (!res.ok) throw new Error(`리포트 생성 오류 (${res.status})`);
-      // const data = await res.json(); onReport(data);
-      // ───────────────────────────────────────────────────────
+
+      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
+      // [Step 1] 리포트 생성 → report_id 받기
+      // const createRes = await fetch("/api/reports", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ analysis_id: result.analysis_id }),
+      // });
+      // if (!createRes.ok) {
+      //   const err = await createRes.json();
+      //   throw new Error(err.error?.message || "리포트 생성에 실패했습니다.");
+      // }
+      // const createData = await createRes.json();
+      // const { report_id } = createData;
+      //
+      // [Step 2] 리포트 조회
+      // const getRes = await fetch(`/api/reports/${report_id}`);
+      // if (!getRes.ok) {
+      //   const err = await getRes.json();
+      //   throw new Error(err.error?.message || "리포트 조회에 실패했습니다.");
+      // }
+      // const reportData = await getRes.json();
+      // onReport({
+      //   report_id: reportData.report_id,
+      //   analysis_id: reportData.analysis_id,
+      //   report_title: reportData.report_title,
+      //   report_text: reportData.report_text,
+      //   created_at: reportData.created_at,
+      // });
+      // ─────────────────────────────────────────────────────────
+
+      // Mock
       onReport({
+        report_id: "rep_mock",
+        analysis_id: result.analysis_id,
         report_title: "도로 사진 분석 리포트",
         report_text: result.report_text,
         created_at: new Date().toISOString(),
@@ -466,8 +495,8 @@ function ResultPage({ result, onReport, onReset }) {
                             fill={d.color}
                             opacity={
                               filter &&
-                              d.class_name !== filter &&
-                              d.class_name !== "normal"
+                                d.class_name !== filter &&
+                                d.class_name !== "normal"
                                 ? 0.2
                                 : 1
                             }
@@ -515,8 +544,8 @@ function ResultPage({ result, onReport, onReset }) {
                         marginBottom: 8,
                         opacity:
                           filter &&
-                          cls.class_name !== filter &&
-                          cls.class_name !== "normal"
+                            cls.class_name !== filter &&
+                            cls.class_name !== "normal"
                             ? 0.2
                             : 1,
                         transition: "opacity 0.2s",
@@ -655,8 +684,8 @@ function ResultPage({ result, onReport, onReset }) {
                     transition: "all 0.5s",
                     opacity:
                       filter &&
-                      cls.class_name !== filter &&
-                      cls.class_name !== "normal"
+                        cls.class_name !== filter &&
+                        cls.class_name !== "normal"
                         ? 0.15
                         : 1,
                     display: "flex",
@@ -699,8 +728,8 @@ function ResultPage({ result, onReport, onReset }) {
                     gap: 5,
                     opacity:
                       filter &&
-                      cls.class_name !== filter &&
-                      cls.class_name !== "normal"
+                        cls.class_name !== filter &&
+                        cls.class_name !== "normal"
                         ? 0.2
                         : 1,
                   }}

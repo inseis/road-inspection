@@ -6,6 +6,7 @@ import { ErrorBanner } from "../components/common/ErrorBanner";
 import { AnalyzingOverlay } from "../components/layout/AnalyzingOverlay";
 
 import { MAX_FILE_MB, validateFile } from "../utils/file";
+import { KakaoMapPicker } from "../components/layout/KakaoMapPicker";
 import { generateReport } from "../utils/report";
 
 import {
@@ -25,16 +26,17 @@ const SIDO_LIST = [
 
 /* ─── Upload Page ────────────────────────────────────────────── */
 function UploadPage({ onAnalyze }) {
-  const [file, setFile] = useState(null);
+  const [file, setFile]       = useState(null);
   const [preview, setPreview] = useState(null);
-  const [memo, setMemo] = useState("");
-  const [sido, setSido] = useState("");
+  const [memo, setMemo]       = useState("");
+  const [sido, setSido]       = useState("");
   const [sigungu, setSigungu] = useState("");
-  const [drag, setDrag] = useState(false);
-  const [progress, setProg] = useState(0);
-  const [analyzing, setAn] = useState(false);
-  const [error, setError] = useState(null);
-  const [fileErr, setFErr] = useState(null);
+  const [drag, setDrag]       = useState(false);
+  const [progress, setProg]   = useState(0);
+  const [analyzing, setAn]    = useState(false);
+  const [error, setError]     = useState(null);
+  const [fileErr, setFErr]    = useState(null);
+  const [showMap, setShowMap] = useState(false);
   const inputRef = useRef();
 
   const applyFile = (f) => {
@@ -105,7 +107,7 @@ function UploadPage({ onAnalyze }) {
 
       // Mock 진행
       const vals = [
-        { d: 400, v: 18 },
+        { d: 400,  v: 18 },
         { d: 1300, v: 38 },
         { d: 2200, v: 57 },
         { d: 2800, v: 74 },
@@ -128,9 +130,9 @@ function UploadPage({ onAnalyze }) {
         original_image_url: preview ?? DEMO_ORIGINAL,
         result_image_url: DEMO_SEGMENTED,
         result_images: {
-          mask: DEMO_SEGMENTED,
-          overlay: DEMO_SEGMENTED,
-          boundary: DEMO_SEGMENTED,
+          mask:         DEMO_SEGMENTED,
+          overlay:      DEMO_SEGMENTED,
+          boundary:     DEMO_SEGMENTED,
           service_card: DEMO_SEGMENTED,
         },
         class_stats: MOCK_CLASS_STATS,
@@ -167,6 +169,16 @@ function UploadPage({ onAnalyze }) {
   return (
     <>
       {analyzing && <AnalyzingOverlay progress={progress} />}
+      {showMap && (
+        <KakaoMapPicker
+          onSelect={({ address }) => {
+            setSido(address.sido);
+            setSigungu(address.sigungu);
+            setShowMap(false);
+          }}
+          onClose={() => setShowMap(false)}
+        />
+      )}
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "52px 20px" }} className="fade-up">
         <div style={{ marginBottom: 32 }}>
           <div style={{ ...S.tag(), marginBottom: 14 }}>Step 01</div>
@@ -259,34 +271,40 @@ function UploadPage({ onAnalyze }) {
               촬영 위치{" "}
               <span style={{ color: C.txtMut, fontWeight: 400, textTransform: "none", letterSpacing: "normal", fontSize: 11 }}>· 선택사항</span>
             </label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {/* 시도 드롭다운 */}
-              <div style={{ position: "relative" }}>
-                <select
-                  value={sido}
-                  onChange={(e) => setSido(e.target.value)}
-                  style={{ ...inputStyle, cursor: "pointer" }}
-                >
-                  <option value="">시/도 선택</option>
-                  {SIDO_LIST.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <Icon.arrow
-                  width={13} height={13}
-                  stroke={C.txtMut}
-                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%) rotate(90deg)", pointerEvents: "none" }}
-                />
+            <button
+              type="button"
+              onClick={() => setShowMap(true)}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "11px 14px",
+                background: sido ? C.cyanLt : C.bgEl,
+                border: `1px solid ${sido ? C.cyanBdr : C.bdrMd}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                textAlign: "left",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={sido ? C.cyan : C.txtMut} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {sido ? (
+                  <>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: C.txtPri }}>{sido} {sigungu}</div>
+                    <div style={{ fontSize: 11, color: C.txtMut, marginTop: 1 }}>탭하여 위치 변경</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 13, color: C.txtMut }}>지도에서 위치 선택하기</div>
+                )}
               </div>
-              {/* 시군구 입력 */}
-              <input
-                type="text"
-                value={sigungu}
-                onChange={(e) => setSigungu(e.target.value)}
-                placeholder="시/군/구 입력"
-                style={inputStyle}
-              />
-            </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.txtMut} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
           </div>
 
           {/* 현장 메모 */}

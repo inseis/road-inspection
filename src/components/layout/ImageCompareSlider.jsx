@@ -3,7 +3,7 @@ import { C } from "../../styles/theme";
 
 /* ─── Image Compare Slider ───────────────────────────────────── */
 function ImageCompareSlider({ originalSrc, resultSrc }) {
-  const [pos, setPos] = useState(50);
+  const [pos, setPos] = useState(30);
   const [dragging, setDragging] = useState(false);
   const ref = useRef();
 

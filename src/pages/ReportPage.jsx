@@ -6,6 +6,12 @@ import { sev } from "../utils/severity";
 import { Icon } from "../components/common/Icons";
 import { ErrorBanner } from "../components/common/ErrorBanner";
 
+/* ─── 퍼센트 포맷 헬퍼 ──────────────────────────────────────── */
+const fmt = (v) => {
+  const pct = v <= 1 ? v * 100 : v;
+  return pct.toFixed(1);
+};
+
 /* ─── Report Page ────────────────────────────────────────────── */
 function ReportPage({ report, result, onReset }) {
   const [pdfL, setPdfL] = useState(false);
@@ -26,36 +32,21 @@ function ReportPage({ report, result, onReset }) {
 
   const handleTxt = async () => {
     try {
-      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
-      // GET /api/reports/{report_id}/download?format=txt
-      // if (report_id && report_id !== "rep_mock") {
-      //   const res = await fetch(`/api/reports/${report_id}/download?format=txt`);
-      //   if (!res.ok) {
-      //     const err = await res.json();
-      //     throw new Error(err.error?.message || "TXT 다운로드에 실패했습니다.");
-      //   }
-      //   const blob = await res.blob();
-      //   const url = URL.createObjectURL(blob);
-      //   const a = document.createElement("a");
-      //   a.href = url;
-      //   a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
-      //   a.click();
-      //   URL.revokeObjectURL(url);
-      //   return;
-      // }
-      // ─────────────────────────────────────────────────────────
-
-      // Mock: 클라이언트에서 직접 생성
-      const blob = new Blob(
-        [`${report_title}\n생성일시: ${dateStr}\n\n${editText}`],
-        { type: "text/plain;charset=utf-8" },
-      );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+        if (report_id && report_id !== "rep_mock") {
+            const res = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}/download?format=txt`);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error?.message || "TXT 다운로드에 실패했습니다.");
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            return;
+        }
     } catch (e) {
       setError(e.message);
     }
@@ -66,23 +57,20 @@ function ReportPage({ report, result, onReset }) {
       setPdfL(true);
       await new Promise((r) => setTimeout(r, 800));
 
-      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
       // GET /api/reports/{report_id}/download?format=pdf
-      // const res = await fetch(`/api/reports/${report_id}/download?format=pdf`);
-      // if (!res.ok) {
-      //   const err = await res.json();
-      //   throw new Error(err.error?.message || "PDF 다운로드에 실패했습니다.");
-      // }
-      // const blob = await res.blob();
-      // const url = URL.createObjectURL(blob);
-      // const a = document.createElement("a");
-      // a.href = url;
-      // a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.pdf`;
-      // a.click();
-      // URL.revokeObjectURL(url);
-      // ─────────────────────────────────────────────────────────
+      const res = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}/download?format=pdf`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || "PDF 다운로드에 실패했습니다.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
 
-      throw new Error("PDF 다운로드는 백엔드 API 연동 후 활성화됩니다.");
     } catch (e) {
       setError(e.message);
     } finally {
@@ -240,7 +228,7 @@ function ReportPage({ report, result, onReset }) {
           {[
             {
               label: "손상 비율",
-              value: `${result.summary.total_damage_ratio}%`,
+              value: `${fmt(result.summary.total_damage_ratio)}%`,
               color: C.red,
             },
             {
@@ -420,7 +408,7 @@ function ReportPage({ report, result, onReset }) {
                       {cls.label || cls.class_name}
                     </td>
                     <td style={{ padding: "12px 14px", color: C.txtSec, fontFamily: "'JetBrains Mono',monospace" }}>
-                      {cls.area_ratio}%
+                      {fmt(cls.area_ratio)}%
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={S.badge(cls.severity)}>

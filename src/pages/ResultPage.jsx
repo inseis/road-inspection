@@ -18,6 +18,12 @@ import { Icon } from "../components/common/Icons";
 import { ErrorBanner } from "../components/common/ErrorBanner";
 import { ImageCompareSlider } from "../components/layout/ImageCompareSlider";
 
+/* ─── 퍼센트 포맷 헬퍼 ──────────────────────────────────────── */
+const fmt = (v) => {
+  const pct = v <= 1 ? v * 100 : v;
+  return pct.toFixed(1);
+};
+
 /* ─── Result Page ────────────────────────────────────────────── */
 function ResultPage({ result, onReport, onReset }) {
   const [tab, setTab] = useState("compare");
@@ -59,7 +65,7 @@ function ResultPage({ result, onReport, onReset }) {
         >
           {d.label}
         </div>
-        <div style={{ fontSize: 11, color: C.txtSec }}>{d.area_ratio}%</div>
+        <div style={{ fontSize: 11, color: C.txtSec }}>{fmt(d.area_ratio)}%</div>
       </div>
     );
   };
@@ -69,44 +75,31 @@ function ResultPage({ result, onReport, onReset }) {
       setRepL(true);
       await new Promise((r) => setTimeout(r, 1200));
 
-      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
-      // [Step 1] 리포트 생성 → report_id 받기
-      // const createRes = await fetch("/api/reports", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ analysis_id: result.analysis_id }),
-      // });
-      // if (!createRes.ok) {
-      //   const err = await createRes.json();
-      //   throw new Error(err.error?.message || "리포트 생성에 실패했습니다.");
-      // }
-      // const createData = await createRes.json();
-      // const { report_id } = createData;
-      //
-      // [Step 2] 리포트 조회
-      // const getRes = await fetch(`/api/reports/${report_id}`);
-      // if (!getRes.ok) {
-      //   const err = await getRes.json();
-      //   throw new Error(err.error?.message || "리포트 조회에 실패했습니다.");
-      // }
-      // const reportData = await getRes.json();
-      // onReport({
-      //   report_id: reportData.report_id,
-      //   analysis_id: reportData.analysis_id,
-      //   report_title: reportData.report_title,
-      //   report_text: reportData.report_text,
-      //   created_at: reportData.created_at,
-      // });
-      // ─────────────────────────────────────────────────────────
+        const createRes = await fetch("http://13.54.233.14:8000/api/reports", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ analysis_id: result.analysis_id }),
+        });
+        if (!createRes.ok) {
+            const err = await createRes.json();
+            throw new Error(err.error?.message || "리포트 생성에 실패했습니다.");
+        }
+        const createData = await createRes.json();
+        const { report_id } = createData;
 
-      // Mock
-      onReport({
-        report_id: "rep_mock",
-        analysis_id: result.analysis_id,
-        report_title: "도로 사진 분석 리포트",
-        report_text: result.report_text,
-        created_at: new Date().toISOString(),
-      });
+        const getRes = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}`);
+        if (!getRes.ok) {
+            const err = await getRes.json();
+            throw new Error(err.error?.message || "리포트 조회에 실패했습니다.");
+        }
+        const reportData = await getRes.json();
+        onReport({
+            report_id: reportData.report_id,
+            analysis_id: reportData.analysis_id,
+            report_title: reportData.report_title,
+            report_text: reportData.report_text,
+            created_at: reportData.created_at,
+        });
     } catch (e) {
       setError(e.message || "리포트 생성 중 오류가 발생했습니다.");
     } finally {
@@ -172,7 +165,7 @@ function ResultPage({ result, onReport, onReset }) {
         {[
           {
             label: "전체 손상 비율",
-            value: `${summary.total_damage_ratio}%`,
+            value: `${fmt(summary.total_damage_ratio)}%`,
             color: C.red,
           },
           {
@@ -525,7 +518,7 @@ function ResultPage({ result, onReport, onReset }) {
                           fontFamily: "'JetBrains Mono',monospace",
                         }}
                       >
-                        {summary.total_damage_ratio}%
+                        {fmt(summary.total_damage_ratio)}%
                       </div>
                       <div style={{ fontSize: 10, color: C.txtMut }}>
                         총 손상
@@ -578,7 +571,7 @@ function ResultPage({ result, onReport, onReset }) {
                           fontFamily: "'JetBrains Mono',monospace",
                         }}
                       >
-                        {cls.area_ratio}%
+                        {fmt(cls.area_ratio)}%
                       </span>
                     </div>
                   ))}
@@ -662,7 +655,7 @@ function ResultPage({ result, onReport, onReset }) {
                   fontFamily: "'JetBrains Mono',monospace",
                 }}
               >
-                총 손상 {summary.total_damage_ratio}%
+                총 손상 {fmt(summary.total_damage_ratio)}%
               </span>
             </div>
             <div
@@ -677,9 +670,9 @@ function ResultPage({ result, onReport, onReset }) {
               {class_stats.map((cls) => (
                 <div
                   key={cls.class_name}
-                  title={`${cls.label}: ${cls.area_ratio}%`}
+                  title={`${cls.label}: ${fmt(cls.area_ratio)}%`}
                   style={{
-                    width: `${cls.area_ratio}%`,
+                    width: `${fmt(cls.area_ratio)}%`,
                     background: cls.color,
                     transition: "all 0.5s",
                     opacity:
@@ -705,7 +698,7 @@ function ResultPage({ result, onReport, onReset }) {
                         fontFamily: "'JetBrains Mono',monospace",
                       }}
                     >
-                      {cls.area_ratio}%
+                      {fmt(cls.area_ratio)}%
                     </span>
                   )}
                 </div>
@@ -743,7 +736,7 @@ function ResultPage({ result, onReport, onReset }) {
                     }}
                   />
                   <span style={{ fontSize: 11, color: C.txtMut }}>
-                    {cls.label} {cls.area_ratio}%
+                    {cls.label} {fmt(cls.area_ratio)}%
                   </span>
                 </div>
               ))}

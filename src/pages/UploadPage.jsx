@@ -65,7 +65,7 @@ function UploadPage({ onAnalyze }) {
       fd.append("address_si_do", sido);
       fd.append("address_si_gun_gu", sigungu);
 
-      const uploadRes = await fetch("http://13.54.233.14:8000/api/images", {
+      const uploadRes = await fetch("http://localhost:8000/api/images", {
         method: "POST",
         body: fd,
       });
@@ -80,7 +80,7 @@ function UploadPage({ onAnalyze }) {
 
       setProg(30);
 
-      const analysisRes = await fetch("http://13.54.233.14:8000/api/analyses", {
+      const analysisRes = await fetch("http://localhost:8000/api/analyses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

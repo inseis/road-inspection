@@ -89,7 +89,7 @@ function ResultPage({ result, onReport, onReset }) {
       await new Promise((r) => setTimeout(r, 1200));
 
         try {
-          const createRes = await fetch("http://13.54.233.14:8000/api/reports", {
+          const createRes = await fetch("http://localhost:8000/api/reports", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ analysis_id: result.analysis_id }),
@@ -97,7 +97,7 @@ function ResultPage({ result, onReport, onReset }) {
           if (!createRes.ok) throw new Error("EC2 리포트 생성 실패");
           const createData = await createRes.json();
           const { report_id } = createData;
-          const getRes = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}`);
+          const getRes = await fetch(`http://localhost:8000/api/reports/${report_id}`);
           if (!getRes.ok) throw new Error("EC2 리포트 조회 실패");
           const reportData = await getRes.json();
           onReport({

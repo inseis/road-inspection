@@ -87,7 +87,7 @@ function ReportPage({ report, result, onReset }) {
   const handleTxt = async () => {
     try {
       if (report_id && report_id !== "rep_mock") {
-        const res = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}/download?format=txt`);
+        const res = await fetch(`http://localhost:8000/api/reports/${report_id}/download?format=txt`);
         if (res.ok) {
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);
@@ -119,7 +119,7 @@ function ReportPage({ report, result, onReset }) {
     try {
       setPdfL(true);
       if (report_id && report_id !== "rep_mock") {
-        const res = await fetch(`http://13.54.233.14:8000/api/reports/${report_id}/download?format=pdf`);
+        const res = await fetch(`http://localhost:8000/api/reports/${report_id}/download?format=pdf`);
         if (res.ok) {
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);

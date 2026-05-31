@@ -7,14 +7,8 @@ import { AnalyzingOverlay } from "../components/layout/AnalyzingOverlay";
 
 import { MAX_FILE_MB, validateFile } from "../utils/file";
 import { KakaoMapPicker } from "../components/layout/KakaoMapPicker";
-import { generateReport } from "../utils/report";
 
-import {
-  MOCK_CLASS_STATS,
-  MOCK_SUMMARY,
-  DEMO_ORIGINAL,
-  DEMO_SEGMENTED,
-} from "../constants/mockData";
+
 
 /* ─── 시도 목록 ──────────────────────────────────────────────── */
 const SIDO_LIST = [
@@ -56,93 +50,67 @@ function UploadPage({ onAnalyze }) {
 
   const start = async () => {
     const err = validateFile(file);
-    if (err) { setFErr(err); return; }
+    if (err) {
+      setFErr(err);
+      return;
+    }
 
     try {
       setAn(true);
       setProg(0);
+      setError(null);
 
-      // ── 실제 API 연동 시 아래로 교체 ──────────────────────────
-      // [Step 1] 이미지 업로드 → image_id 받기
-      // const fd = new FormData();
-      // fd.append("image", file);
-      // fd.append("address_si_do", sido);
-      // fd.append("address_si_gun_gu", sigungu);
-      // const uploadRes = await fetch("/api/images", { method: "POST", body: fd });
-      // if (!uploadRes.ok) {
-      //   const err = await uploadRes.json();
-      //   throw new Error(err.error?.message || "이미지 업로드에 실패했습니다.");
-      // }
-      // const uploadData = await uploadRes.json();
-      // const { image_id, original_image_url } = uploadData;
-      // setProg(30);
-      //
-      // [Step 2] 분석 요청 → analysis_id 받기
-      // const analysisRes = await fetch("/api/analyses", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ image_id, model: "model" }),
-      // });
-      // if (!analysisRes.ok) {
-      //   const err = await analysisRes.json();
-      //   throw new Error(err.error?.message || "분석 요청에 실패했습니다.");
-      // }
-      // const analysisData = await analysisRes.json();
-      // setProg(100);
-      //
-      // onAnalyze({
-      //   image_id,
-      //   analysis_id: analysisData.analysis_id,
-      //   original_image_url,
-      //   result_image_url: analysisData.result_images.overlay,
-      //   result_images: analysisData.result_images,
-      //   class_stats: analysisData.class_stats,
-      //   summary: analysisData.summary,
-      //   memo,
-      //   location: { sido, sigungu },
-      //   file_name: file?.name ?? "road.jpg",
-      //   file_size: file?.size ?? 0,
-      // });
-      // ───────────────────────────────────────────────────────────
+      const fd = new FormData();
+      fd.append("image", file);
+      fd.append("address_si_do", sido);
+      fd.append("address_si_gun_gu", sigungu);
 
-      // Mock 진행
-      const vals = [
-        { d: 400,  v: 18 },
-        { d: 1300, v: 38 },
-        { d: 2200, v: 57 },
-        { d: 2800, v: 74 },
-        { d: 3400, v: 90 },
-        { d: 4000, v: 100 },
-      ];
-      await new Promise((resolve) => {
-        vals.forEach(({ d, v }) =>
-          setTimeout(() => {
-            setProg(v);
-            if (v === 100) setTimeout(resolve, 500);
-          }, d),
-        );
+      const uploadRes = await fetch("http://13.54.233.14:8000/api/images", {
+        method: "POST",
+        body: fd,
       });
 
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.error?.message || "이미지 업로드에 실패했습니다.");
+      }
+
+      const uploadData = await uploadRes.json();
+      const { image_id, original_image_url } = uploadData;
+
+      setProg(30);
+
+      const analysisRes = await fetch("http://13.54.233.14:8000/api/analyses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_id,
+          model: "model",
+        }),
+      });
+
+      if (!analysisRes.ok) {
+        const err = await analysisRes.json();
+        throw new Error(err.error?.message || "분석 요청에 실패했습니다.");
+      }
+
+      const analysisData = await analysisRes.json();
+
+      setProg(100);
       setAn(false);
+
       onAnalyze({
-        image_id: "img_mock",
-        analysis_id: "ana_mock",
-        original_image_url: preview ?? DEMO_ORIGINAL,
-        result_image_url: DEMO_SEGMENTED,
-        result_images: {
-          mask:         DEMO_SEGMENTED,
-          overlay:      DEMO_SEGMENTED,
-          boundary:     DEMO_SEGMENTED,
-          service_card: DEMO_SEGMENTED,
-        },
-        class_stats: MOCK_CLASS_STATS,
-        summary: MOCK_SUMMARY,
+        image_id,
+        analysis_id: analysisData.analysis_id,
+        original_image_url,
+        result_image_url: analysisData.result_images.overlay,
+        result_images: analysisData.result_images,
+        class_stats: analysisData.class_stats,
+        summary: analysisData.summary,
         memo,
         location: { sido, sigungu },
-        file_name: file?.name ?? "demo_road.jpg",
+        file_name: file?.name ?? "road.jpg",
         file_size: file?.size ?? 0,
-        report_text: generateReport(MOCK_CLASS_STATS, MOCK_SUMMARY, memo),
-        report_title: "도로 사진 분석 리포트",
       });
     } catch (e) {
       setAn(false);
@@ -248,22 +216,7 @@ function UploadPage({ onAnalyze }) {
             </div>
           )}
 
-          {/* Demo hint */}
-          {!file && (
-            <div style={{ marginTop: 12, padding: "10px 14px", background: C.bgEl, borderRadius: 9, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", gap: 8 }}>
-              <Icon.info width={13} height={13} stroke={C.txtMut} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: C.txtSec }}>
-                사진이 없어도{" "}
-                <button
-                  onClick={() => { setFile(new File([], "demo_road.jpg", { type: "image/jpeg" })); setPreview(DEMO_ORIGINAL); }}
-                  style={{ background: "none", border: "none", color: C.cyan, fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}
-                >
-                  데모 이미지로 체험
-                </button>
-                해볼 수 있습니다.
-              </span>
-            </div>
-          )}
+
 
           {/* 위치 정보 */}
           <div style={{ marginTop: 20 }}>

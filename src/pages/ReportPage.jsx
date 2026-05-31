@@ -118,20 +118,11 @@ function ReportPage({ report, result, onReset }) {
   const handlePdf = async () => {
     try {
       setPdfL(true);
-      if (report_id && report_id !== "rep_mock") {
-        const res = await fetch(`http://localhost:8000/api/reports/${report_id}/download?format=pdf`);
-        if (res.ok) {
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `도로점검_리포트_${new Date().toISOString().slice(0, 10)}.pdf`;
-          a.click();
-          URL.revokeObjectURL(url);
-          return;
-        }
-      }
-      // Mock fallback: 인쇄로 대체
+      // 백엔드 PDF 생성이 아직 미구현이라 브라우저 인쇄로 대체
+      // (인쇄 창에서 "PDF로 저장" 선택 시 실제 PDF 생성됨)
+      // 백엔드 PDF 완성 시 아래 주석 해제하여 교체
+      // const res = await fetch(`http://localhost:8000/api/reports/${report_id}/download?format=pdf`);
+      // if (res.ok) { ...blob 다운로드... }
       window.print();
     } catch (e) {
       setError(e.message);

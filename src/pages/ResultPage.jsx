@@ -53,6 +53,16 @@ function ResultPage({ result, onReport, onReset }) {
 
   const { original_image_url, result_image_url, result_images, class_stats, summary, memo, analysis_id, location } =
     result;
+
+  // 백엔드가 /media 상대경로로 주는 이미지에 base URL을 붙여 절대경로로 변환
+  const API_BASE = "http://localhost:8000";
+  const toAbs = (u) => {
+    if (!u) return u;
+    if (u.startsWith("http")) return u;       // 이미 절대경로
+    return `${API_BASE}${u.startsWith("/") ? "" : "/"}${u}`;
+  };
+  const originalAbs = toAbs(original_image_url);
+  const overlayAbs  = toAbs(result_images?.overlay ?? result_image_url);
   const damaged = class_stats.filter((c) => c.class_name !== "normal");
   const maxR = Math.max(...damaged.map((c) => c.area_ratio));
 
@@ -352,14 +362,14 @@ function ResultPage({ result, onReport, onReset }) {
           >
             {mode === "slider" ? (
               <ImageCompareSlider
-                originalSrc={original_image_url}
-                resultSrc={result_images?.overlay ?? result_image_url}
+                originalSrc={originalAbs}
+                resultSrc={overlayAbs}
               />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                 {[
-                  { label: "원본", src: original_image_url, c: C.txtSec },
-                  { label: "AI 분석", src: result_image_url, c: C.cyan },
+                  { label: "원본", src: originalAbs, c: C.txtSec },
+                  { label: "AI 분석", src: overlayAbs, c: C.cyan },
                 ].map(({ label, src, c }) => (
                   <div key={label}>
                     <div
